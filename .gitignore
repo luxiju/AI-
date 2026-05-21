@@ -21,3 +21,14 @@ data/sample_knowledge.txt
 *.swp
 *.swo
 *~
+*.meta
+*.bin
+*.idx
+*.npy
+*.npz
+volumes/
+.milvus/
+.cache/
+sentence_transformers/
+models/
+checkpoints/

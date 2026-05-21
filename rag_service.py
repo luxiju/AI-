@@ -11,6 +11,7 @@ class RAGService:
         self.embedding_model = EmbeddingModel.get_instance()
         self.collection_name = "knowledge_base"
         self.vector_db.connect()
+        self.distance_threshold = 1.0
     
     @classmethod
     def get_instance(cls):
@@ -27,7 +28,8 @@ class RAGService:
     def search_knowledge(self, query: str, top_k: int = config.MAX_RESULTS) -> List[Tuple[str, float]]:
         query_vector = self.embedding_model.encode(query)
         results = self.vector_db.search(self.collection_name, query_vector, top_k)
-        return results
+        filtered_results = [(text, dist) for text, dist in results if dist <= self.distance_threshold]
+        return filtered_results if filtered_results else results[:3]
     
     def generate_response(self, query: str) -> str:
         results = self.search_knowledge(query)
