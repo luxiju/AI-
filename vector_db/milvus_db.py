@@ -23,7 +23,7 @@ class MilvusDB(VectorDB):
         
         fields = [
             FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
-            FieldSchema(name="vector", dtype=DataType.FLOAT_VECTOR, dim=384),
+            FieldSchema(name="vector", dtype=DataType.FLOAT_VECTOR, dim=4096),
             FieldSchema(name="text", dtype=DataType.VARCHAR, max_length=65535)
         ]
         schema = CollectionSchema(fields, "RAG knowledge base")

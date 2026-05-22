@@ -32,3 +32,5 @@ volumes/
 sentence_transformers/
 models/
 checkpoints/
+.env
+.env
