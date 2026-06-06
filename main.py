@@ -32,9 +32,14 @@ class DocumentResponse(BaseModel):
     success: bool
     message: str
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse) #原生HTML版
 async def root():
     with open("templates/index.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("/vue", response_class=HTMLResponse) #Vue版
+async def vue_root():
+    with open("templates/index-vue.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
 
 @app.post("/api/query", response_model=QueryResponse)
@@ -68,8 +73,10 @@ async def health():
     return {"status": "healthy"}
 
 os.makedirs("templates", exist_ok=True)
+os.makedirs("static", exist_ok=True)
 
 app.mount("/templates", StaticFiles(directory="templates"), name="templates")
+app.mount("/static", StaticFiles(directory="."), name="static")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能客服系统 - Vue 版</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" type="image/svg+xml">
+    <script src="/static/vue.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .chat-history {
+            height: 550px;
+            overflow-y: auto;
+            padding: 25px;
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        }
+
+        .message {
+            margin-bottom: 25px;
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 18px 24px;
+            border-radius: 24px;
+            position: relative;
+        }
+
+        .user .message-content {
+            background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+            color: white;
+            border-bottom-right-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 91, 234, 0.3);
+        }
+
+        .bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-content p {
+            margin: 0;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .input-area {
+            padding: 20px 25px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 12px;
+        }
+
+        #query-input {
+            flex: 1;
+            padding: 16px 22px;
+            border: 2px solid #e2e8f0;
+            border-radius: 30px;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+
+        #query-input:focus {
+            border-color: #005bea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0, 91, 234, 0.1);
+        }
+
+        #send-btn {
+            padding: 16px 35px;
+            background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 91, 234, 0.4);
+        }
+
+        #send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .upload-section h3 {
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #text-input {
+            width: 100%;
+            height: 120px;
+            padding: 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 15px;
+            resize: none;
+            outline: none;
+            transition: all 0.3s;
+            background: #f8fafc;
+            font-family: inherit;
+        }
+
+        #text-input:focus {
+            border-color: #005bea;
+            background: white;
+        }
+
+        #add-btn {
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        #add-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 25px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .status-online {
+            color: #10b981;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-online::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .source-info {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #cbd5e1;
+        }
+
+        .source-info strong {
+            color: #475569;
+        }
+
+        .source-info ul {
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+        }
+
+        .source-info li {
+            margin-bottom: 4px;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 6px;
+            padding: 10px 0;
+        }
+
+        .typing-indicator span {
+            width: 10px;
+            height: 10px;
+            background: #94a3b8;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.3s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 12px 28px;
+            border-radius: 30px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #005bea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .tab-btn:not(.active) {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <div class="header">
+            <h1>🤖 智能客服系统</h1>
+            <p>基于 RAG 技术，支持 FAISS 和 Milvus 向量检索</p>
+        </div>
+
+        <div class="tab-bar">
+            <button class="tab-btn active" @click="currentTab = 'chat'">💬 对话</button>
+            <button class="tab-btn" @click="currentTab = 'knowledge'">📚 知识库</button>
+        </div>
+
+        <div class="status-bar">
+            <span>服务状态: <span class="status-online">{{ statusText }}</span></span>
+            <span>向量数据库: {{ vectorDbType }}</span>
+        </div>
+
+        <div v-show="currentTab === 'knowledge'" class="upload-section">
+            <h3>📝 添加知识库文档</h3>
+            <textarea id="text-input" v-model="newDocuments" placeholder="请输入要添加的知识库内容，每行一条..."></textarea>
+            <button id="add-btn" @click="addDocuments" :disabled="isAdding || !newDocuments.trim()">
+                {{ isAdding ? '添加中...' : '添加文档' }}
+            </button>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-history" ref="chatHistory">
+                <div v-if="messages.length === 0" class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                    </svg>
+                    <h3>开始对话</h3>
+                    <p>输入您的问题，智能客服将为您解答</p>
+                </div>
+
+                <div v-for="(msg, index) in messages" :key="index" class="message" :class="msg.type">
+                    <div class="message-content">
+                        <p>{{ msg.content }}</p>
+                        <div v-if="msg.sources && msg.sources.length > 0" class="source-info">
+                            <strong>参考来源：</strong>
+                            <ul>
+                                <li v-for="(source, i) in msg.sources.slice(0, 3)" :key="i">
+                                    {{ source.substring(0, 60) }}{{ source.length > 60 ? '...' : '' }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="isTyping" class="message bot">
+                    <div class="message-content">
+                        <div class="typing-indicator">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input 
+                    type="text" 
+                    id="query-input" 
+                    v-model="query" 
+                    placeholder="请输入您的问题..." 
+                    @keydown.enter="sendMessage"
+                >
+                <button id="send-btn" @click="sendMessage" :disabled="isTyping || !query.trim()">
+                    {{ isTyping ? '思考中...' : '发送' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const app = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    messages: [],
+                    query: '',
+                    newDocuments: '',
+                    isTyping: false,
+                    isAdding: false,
+                    statusText: '在线',
+                    vectorDbType: 'FAISS',
+                    currentTab: 'chat'
+                }
+            },
+            mounted() {
+                this.checkHealth()
+                this.getVectorDbType()
+                this.addWelcomeMessage()
+            },
+            methods: {
+                addWelcomeMessage() {
+                    this.messages.push({
+                        type: 'bot',
+                        content: '您好！我是智能客服助手，基于 RAG 技术为您提供服务。请问有什么可以帮助您的？',
+                        sources: []
+                    })
+                },
+                async sendMessage() {
+                    if (!this.query.trim() || this.isTyping) return
+
+                    const userQuery = this.query.trim()
+                    this.query = ''
+                    this.isTyping = true
+
+                    this.messages.push({
+                        type: 'user',
+                        content: userQuery,
+                        sources: []
+                    })
+
+                    this.scrollToBottom()
+
+                    try {
+                        const response = await fetch('/api/query', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ query: userQuery })
+                        })
+
+                        const data = await response.json()
+
+                        this.messages.push({
+                            type: 'bot',
+                            content: data.answer,
+                            sources: data.sources || []
+                        })
+                    } catch (error) {
+                        this.messages.push({
+                            type: 'bot',
+                            content: '抱歉，服务器出现错误，请稍后重试。',
+                            sources: []
+                        })
+                    } finally {
+                        this.isTyping = false
+                        this.scrollToBottom()
+                    }
+                },
+                async addDocuments() {
+                    if (!this.newDocuments.trim() || this.isAdding) return
+
+                    const texts = this.newDocuments.trim().split('\n').filter(t => t.trim())
+                    if (texts.length === 0) return
+
+                    this.newDocuments = ''
+                    this.isAdding = true
+
+                    try {
+                        const response = await fetch('/api/add_documents', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ texts })
+                        })
+
+                        const data = await response.json()
+                        alert(data.message)
+                    } catch (error) {
+                        alert('添加文档失败，请重试')
+                    } finally {
+                        this.isAdding = false
+                    }
+                },
+                async checkHealth() {
+                    try {
+                        const response = await fetch('/api/health')
+                        const data = await response.json()
+                        if (data.status === 'healthy') {
+                            this.statusText = '在线'
+                        } else {
+                            this.statusText = '离线'
+                        }
+                    } catch (error) {
+                        this.statusText = '离线'
+                    }
+                },
+                async getVectorDbType() {
+                    try {
+                        const response = await fetch('/api/health')
+                        const data = await response.json()
+                        this.vectorDbType = data.vector_db_type || 'FAISS'
+                    } catch (error) {
+                        this.vectorDbType = '未知'
+                    }
+                },
+                scrollToBottom() {
+                    setTimeout(() => {
+                        const chatHistory = this.$refs.chatHistory
+                        if (chatHistory) {
+                            chatHistory.scrollTop = chatHistory.scrollHeight
+                        }
+                    }, 100)
+                }
+            }
+        })
+
+        setInterval(() => {
+            app.checkHealth()
+        }, 30000)
+    </script>
+</body>
+</html>
